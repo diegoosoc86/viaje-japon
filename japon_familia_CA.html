@@ -488,8 +488,8 @@ function setSyncing(on,ok){
 }
 const fmt=n=>'$'+Math.round(n).toLocaleString('es-MX');
 function todayMX(){const d=new Date(new Date().toLocaleString('en-US',{timeZone:'America/Mexico_City'}));return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
-const dStr=iso=>String(iso).slice(0,10);
-const fmtD=iso=>{const[,m,d]=dStr(iso).split('-');return`${d}/${m}`;};
+const dStr=iso=>normalizeDate(iso)||String(iso).slice(0,10);
+const fmtD=iso=>{const norm=normalizeDate(iso);if(!norm||norm.length<10)return'—';const[,m,d]=norm.split('-');return`${d}/${m}`;};
 const getCat=id=>CATS.find(c=>c.id===id)||{e:'💸',n:id};
 const getType=id=>PLACE_TYPES.find(t=>t.id===id)||{e:'📍',n:id,cls:'ptag-otro'};
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
