@@ -239,7 +239,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="header">
     <div class="header-top">
       <h1><span>⛩️</span> Japón · Familia CA</h1>
-      <div class="hright"><span class="vbadge">v1.4</span><button id="syncBtn" class="syncbtn" onclick="syncAll()">⟳ Sync</button></div>
+      <div class="hright"><span class="vbadge">v1.6</span><button id="syncBtn" class="syncbtn" onclick="syncAll()">⟳ Sync</button></div>
     </div>
     <div class="hsub"><span class="dbadge">14–31 Oct 2026</span><span id="headerSub">Cargando...</span></div>
   </div>
@@ -408,6 +408,50 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   </div>
 </div>
 
+<!-- EDITAR DÍA MODAL -->
+<div id="dayEditOverlay" class="hotel-modal-overlay" onclick="if(event.target===this)closeDayEdit()">
+  <div class="hotel-modal">
+    <h3 id="dayEditTitle">✏️ Día 1</h3>
+    <div class="flbl">Etiqueta del día</div>
+    <input id="dayEditRegion" type="text" class="ninput" placeholder="Ej: Shinjuku · Shibuya..." maxlength="80"/>
+    <div style="background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.2);border-radius:var(--r2);padding:10px 12px;margin-bottom:10px">
+      <div style="font-size:11px;color:var(--sakura2);font-weight:600;margin-bottom:4px">⚠️ Zona peligrosa</div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:8px">Eliminar el día borrará todos sus lugares de Sheets. No se puede deshacer.</div>
+      <button onclick="confirmDeleteDia()" style="width:100%;padding:9px;background:rgba(192,57,43,.15);color:var(--red2);border:1px solid rgba(192,57,43,.3);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer">🗑️ Eliminar todos los lugares del día</button>
+    </div>
+    <div style="display:flex;gap:7px">
+      <button onclick="closeDayEdit()" style="flex:1;padding:11px;background:var(--surface2);color:var(--muted2);border:none;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer">Cancelar</button>
+      <button onclick="saveDayEdit()" style="flex:1;padding:11px;background:var(--indigo);color:white;border:none;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer">Guardar etiqueta</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDITAR LUGAR MODAL -->
+<div id="placeEditOverlay" class="hotel-modal-overlay" onclick="if(event.target===this)closePlaceEdit()">
+  <div class="hotel-modal">
+    <h3>✏️ Editar lugar</h3>
+    <div class="flbl">Tipo</div>
+    <div class="type-grid" style="margin-bottom:10px">
+      <div class="type-btn" id="pe-t-hotel"     onclick="peSel('hotel')">🏨 Hotel</div>
+      <div class="type-btn" id="pe-t-atraccion"  onclick="peSel('atraccion')">🏯 Atracción</div>
+      <div class="type-btn" id="pe-t-comida"     onclick="peSel('comida')">🍜 Comida</div>
+      <div class="type-btn" id="pe-t-transporte" onclick="peSel('transporte')">🚆 Transporte</div>
+      <div class="type-btn" id="pe-t-parque"     onclick="peSel('parque')">🌿 Parque</div>
+      <div class="type-btn" id="pe-t-otro"       onclick="peSel('otro')">📍 Otro</div>
+    </div>
+    <div class="flbl">Nombre</div>
+    <input id="peNombre" type="text" class="ninput" placeholder="Nombre del lugar..." maxlength="100"/>
+    <div class="flbl">Link Google Maps (opcional)</div>
+    <input id="peMaps" type="url" class="ninput" placeholder="https://maps.google.com/..." style="font-size:11px"/>
+    <div class="flbl">Nota (opcional)</div>
+    <input id="peNota" type="text" class="ninput" placeholder="Horario, precio, consejo..." maxlength="160"/>
+    <div style="display:flex;gap:7px;margin-top:2px">
+      <button onclick="closePlaceEdit()" style="flex:1;padding:11px;background:var(--surface2);color:var(--muted2);border:none;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer">Cancelar</button>
+      <button onclick="savePlaceEdit()" style="flex:1;padding:11px;background:var(--indigo);color:white;border:none;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer">Guardar</button>
+    </div>
+  </div>
+</div>
+
 <!-- HOTEL MODAL -->
 <div id="hotelModalOverlay" class="hotel-modal-overlay" onclick="if(event.target===this)closeHotelModal()">
   <div class="hotel-modal">
@@ -533,6 +577,7 @@ async function syncAll(){
     if(gR.gastos)gastos=gR.gastos.map(g=>({...g,amtMXN:+g.amtMXN,monto_orig:+(g.monto_orig||g.amtMXN)}));
     tareas=(tR&&tR.tareas&&tR.tareas.length)?tR.tareas:TAREAS_BASE.map(t=>({...t}));
     if(iR&&iR.filas)itinRows=iR.filas;
+    if(iR&&iR.hoteles)hoteles=iR.hoteles; // ← hoteles desde Sheets, compartido entre dispositivos
     renderAll();setSyncing(false,true);
   }catch(e){setSyncing(false);toast('❌ Error de conexión');if(!tareas.length)tareas=TAREAS_BASE.map(t=>({...t}));renderAll();}
 }
@@ -633,7 +678,12 @@ function confirmDelete(id,label,monto,isTask){
   document.getElementById('delOverlay').classList.add('open');
 }
 function closeDelModal(){document.getElementById('delOverlay').classList.remove('open');pendingDeleteId=null;}
-function doDeleteConfirmed(){const id=pendingDeleteId,isTask=deleteIsTask;closeDelModal();if(id){if(isTask)doDeleteTask(id);else doDelete(id);}}
+function doDeleteConfirmed(){
+  const id=pendingDeleteId,isTask=deleteIsTask,isLugar=window._deleteIsLugar,isDia=window._deleteIsDia;
+  window._deleteIsLugar=false; window._deleteIsDia=false;
+  closeDelModal();
+  if(id){if(isTask)doDeleteTask(id);else if(isDia)doDeleteDia(id);else if(isLugar)doDeleteLugar(id);else doDelete(id);}
+}
 async function doDelete(id){const prev=[...gastos];gastos=gastos.filter(g=>g.id!==id);renderAll();try{await api({action:'deleteGasto',id});toast('🗑️ Eliminado');}catch(e){gastos=prev;renderAll();toast('❌ Error');}}
 function openEdit(id){
   const g=gastos.find(x=>String(x.id).trim()===String(id).trim());if(!g)return;
@@ -767,11 +817,9 @@ const CIUDADES_DEF = [
   {id:'vuelo-vuelta',nombre:'Vuelo de regreso',emoji:'✈️', fechaIni:'2026-10-31', fechaFin:'2026-10-31', noches:0, dias:[18]},
 ];
 
-// hoteles guardados en localStorage (persiste sin necesitar Sheets)
-let hoteles = JSON.parse(localStorage.getItem('japon_hoteles')||'{}');
+// hoteles en memoria — se cargan desde Sheets en syncAll (compartido entre dispositivos)
+let hoteles = {};
 let hotelEditCityId = null;
-
-function saveHotelesLocal(){localStorage.setItem('japon_hoteles',JSON.stringify(hoteles));}
 
 function openHotelModal(cityId){
   hotelEditCityId = cityId;
@@ -791,13 +839,18 @@ async function saveHotel(){
   const maps   = document.getElementById('hotelMaps').value.trim();
   const nota   = document.getElementById('hotelNota').value.trim();
   if(!hotelEditCityId) return;
+  // Actualizar en memoria inmediatamente para que se vea al instante
   hoteles[hotelEditCityId] = {nombre, maps, nota};
-  saveHotelesLocal();
+  const savedCityId = hotelEditCityId;
   closeHotelModal();
   renderDays();
-  toast('🏨 Hotel guardado');
-  try{ await api({action:'updateHotel', cityId:hotelEditCityId, nombre, maps, nota}); }
-  catch(e){ /* falla silenciosa — guardado en local */ }
+  toast('🏨 Guardando...');
+  try{
+    await api({action:'updateHotel', cityId:savedCityId, nombre, maps, nota});
+    toast('🏨 Hotel guardado');
+  }catch(e){
+    toast('⚠️ Error al sincronizar — verifica conexión');
+  }
 }
 
 function renderDays(){
@@ -890,7 +943,10 @@ function renderDays(){
             <div class="day-label">${isToday?'Hoy · ':''}${day.region||day.ciudad}</div>
             <div class="day-date-badge">${day.fecha?day.fecha.slice(5).replace('-','/'):''}</div>
           </div>
-          <button class="day-add-btn" onclick="event.stopPropagation();openPlaceForm(${day.dia},'${formDId}','${bodyDId}')">+ Agregar</button>
+          <div style="display:flex;gap:5px;flex-shrink:0">
+            <button class="day-add-btn" onclick="event.stopPropagation();openDayEdit(${day.dia},'${(day.region||'').replace(/'/g,"\\'")}')">✏️</button>
+            <button class="day-add-btn" onclick="event.stopPropagation();openPlaceForm(${day.dia},'${formDId}','${bodyDId}')">+ Agregar</button>
+          </div>
         </div>
         <div id="${bodyDId}" class="day-body">
           ${day.places.sort((a,b)=>(+a.orden||0)-(+b.orden||0)).map(p=>buildPlaceHTML(p)).join('')}
@@ -917,15 +973,159 @@ function toggleDay(id){
 }
 
 function buildPlaceHTML(p){
-  const t=getType(p.subtipo||p.tipo);
-  return`<div class="place-item">
-    <div class="place-icon">${p.emoji||t.e}</div>
-    <div style="flex:1;min-width:0">
+  const t = getType(p.subtipo||p.tipo);
+  const pid = p.id;
+  return `<div class="place-item" id="pi-${pid}">
+    <div class="place-icon" onclick="togglePlaceActions('pa-${pid}')">${p.emoji||t.e}</div>
+    <div style="flex:1;min-width:0" onclick="togglePlaceActions('pa-${pid}')">
       <div class="place-name">${p.nombre}</div>
       ${p.nota?`<div class="place-note">${p.nota}</div>`:''}
-      <span class="ptag ${t.cls}">${t.n}</span>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:2px">
+        <span class="ptag ${t.cls}">${t.n}</span>
+        ${p.maps?`<a href="${p.maps}" target="_blank" onclick="event.stopPropagation()" style="display:inline-flex;align-items:center;gap:3px;font-size:9px;color:var(--indigo2);text-decoration:none;background:rgba(91,106,240,.1);border:1px solid rgba(91,106,240,.25);border-radius:5px;padding:2px 6px;">📍 Maps</a>`:''}
+      </div>
+    </div>
+    <div id="pa-${pid}" style="display:none;flex-direction:column;gap:5px;flex-shrink:0;margin-left:6px">
+      <button onclick="event.stopPropagation();openPlaceEdit('${pid}')" style="padding:5px 9px;background:var(--indigo);color:white;border:none;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">✏️ Editar</button>
+      <button onclick="event.stopPropagation();confirmDeleteLugar('${pid}','${(p.nombre||'').replace(/'/g,"\\'")}')" style="padding:5px 9px;background:rgba(192,57,43,.15);color:var(--red2);border:1px solid rgba(192,57,43,.3);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">🗑️ Eliminar</button>
     </div>
   </div>`;
+}
+
+function togglePlaceActions(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const open = el.style.display !== 'none';
+  // Cerrar todos los demás
+  document.querySelectorAll('[id^="pa-"]').forEach(a => a.style.display = 'none');
+  if(!open) el.style.display = 'flex';
+}
+
+// ── EDITAR LUGAR ─────────────────────────────────────────────────────────────
+let editPlaceId = null;
+let editPlaceType = null;
+
+function openPlaceEdit(id){
+  document.querySelectorAll('.add-place-form').forEach(f=>{f.classList.remove('open');f.innerHTML='';});
+  document.querySelectorAll('[id^="pa-"]').forEach(a => a.style.display = 'none');
+  const lugar = itinRows.find(r => r.id === id);
+  if(!lugar) return;
+  editPlaceId = id;
+  editPlaceType = lugar.subtipo || lugar.tipo || 'otro';
+  document.getElementById('peNombre').value = lugar.nombre || '';
+  document.getElementById('peMaps').value   = lugar.maps   || '';
+  document.getElementById('peNota').value   = lugar.nota   || '';
+  PLACE_TYPES.forEach(t => {
+    const b = document.getElementById(`pe-t-${t.id}`);
+    if(b) b.className = 'type-btn' + (t.id === editPlaceType ? ' sel' : '');
+  });
+  document.getElementById('placeEditOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('peNombre').focus(), 150);
+}
+
+function peSel(typeId){
+  editPlaceType = typeId;
+  PLACE_TYPES.forEach(t=>{
+    const b = document.getElementById(`pe-t-${t.id}`);
+    if(b) b.className = 'type-btn' + (t.id === typeId ? ' sel' : '');
+  });
+}
+
+function closePlaceEdit(){
+  document.getElementById('placeEditOverlay').classList.remove('open');
+  editPlaceId = null; editPlaceType = null;
+}
+
+async function savePlaceEdit(){
+  const nombre = document.getElementById('peNombre').value.trim();
+  const maps   = document.getElementById('peMaps').value.trim();
+  const nota   = document.getElementById('peNota').value.trim();
+  if(!nombre){ toast('⚠️ Escribe el nombre'); return; }
+  if(!editPlaceType){ toast('⚠️ Selecciona el tipo'); return; }
+  const idx = itinRows.findIndex(r => r.id === editPlaceId);
+  if(idx === -1) return;
+  const t = getType(editPlaceType);
+  const prev = {...itinRows[idx]};
+  itinRows[idx] = {...itinRows[idx], nombre, maps, nota, subtipo: editPlaceType, emoji: t.e};
+  const savedId = editPlaceId;
+  closePlaceEdit();
+  renderDays();
+  toast('✅ Lugar actualizado');
+  try{
+    await api({action:'updateLugar', id:savedId, nombre, maps, nota, subtipo:editPlaceType, emoji:t.e});
+  }catch(e){
+    itinRows[idx] = prev; renderDays(); toast('❌ Error al guardar');
+  }
+}
+
+// ── ELIMINAR LUGAR ────────────────────────────────────────────────────────────
+function confirmDeleteLugar(id, nombre){
+  pendingDeleteId = id;
+  deleteIsTask = false;
+  window._deleteIsLugar = true;
+  document.getElementById('delDesc').textContent = `"${nombre}" — Esta acción no se puede deshacer.`;
+  document.getElementById('delOverlay').classList.add('open');
+}
+
+async function doDeleteLugar(id){
+  const prev = [...itinRows];
+  itinRows = itinRows.filter(r => r.id !== id);
+  renderDays();
+  toast('🗑️ Eliminado');
+  try{ await api({action:'deleteLugar', id}); }
+  catch(e){ itinRows = prev; renderDays(); toast('❌ Error'); }
+}
+
+// ── EDITAR / ELIMINAR DÍA ─────────────────────────────────────────────────────
+let editDiaNum = null;
+
+function openDayEdit(diaNum, currentRegion){
+  editDiaNum = diaNum;
+  document.getElementById('dayEditTitle').textContent = `✏️ Día ${diaNum}`;
+  document.getElementById('dayEditRegion').value = currentRegion || '';
+  document.getElementById('dayEditOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('dayEditRegion').focus(), 150);
+}
+function closeDayEdit(){
+  document.getElementById('dayEditOverlay').classList.remove('open');
+  editDiaNum = null;
+}
+
+async function saveDayEdit(){
+  const region = document.getElementById('dayEditRegion').value.trim();
+  if(!region){ toast('⚠️ Escribe una etiqueta'); return; }
+  const diaNum = editDiaNum;
+  // Actualizar en memoria
+  itinRows.forEach(r => { if(+r.dia === diaNum) r.region = region; });
+  closeDayEdit();
+  renderDays();
+  toast('✅ Día actualizado');
+  try{ await api({action:'updateDia', dia:diaNum, region}); }
+  catch(e){ toast('❌ Error al sincronizar'); }
+}
+
+function confirmDeleteDia(){
+  const diaNum = editDiaNum;
+  if(!diaNum) return;
+  closeDayEdit();
+  pendingDeleteId = String(diaNum);
+  deleteIsTask = false;
+  window._deleteIsLugar = false;
+  window._deleteIsDia = true;
+  const dayRef = itinRows.find(r => +r.dia === diaNum && r.tipo === 'dia');
+  document.getElementById('delDesc').textContent = `Día ${diaNum} — ${dayRef?dayRef.region||dayRef.ciudad:''}. Se eliminarán todos sus lugares. No se puede deshacer.`;
+  document.getElementById('delOverlay').classList.add('open');
+}
+
+async function doDeleteDia(dia){
+  const diaNum = +dia;
+  const prev = [...itinRows];
+  // Eliminar solo los lugares (tipo='lugar'), conservar la fila tipo='dia'
+  itinRows = itinRows.filter(r => !(+r.dia === diaNum && r.tipo === 'lugar'));
+  renderDays();
+  toast('🗑️ Lugares del día eliminados');
+  try{ await api({action:'deleteDia', dia:diaNum}); }
+  catch(e){ itinRows = prev; renderDays(); toast('❌ Error'); }
 }
 
 function openPlaceForm(diaNum,formId,bodyId){
@@ -937,6 +1137,7 @@ function openPlaceForm(diaNum,formId,bodyId){
     <div class="flbl" style="color:var(--muted2)">Tipo de lugar</div>
     <div class="type-grid" id="tg-${diaNum}">${PLACE_TYPES.map(t=>`<div class="type-btn" id="tb-${diaNum}-${t.id}" onclick="setPlaceType(${diaNum},'${t.id}')">${t.e} ${t.n}</div>`).join('')}</div>
     <input class="plinein" id="pn-${diaNum}" placeholder="Nombre del lugar..."/>
+    <input class="plinein" id="pm-${diaNum}" placeholder="Link Google Maps (opcional)..." style="font-size:11px"/>
     <input class="plinein" id="pnote-${diaNum}" placeholder="Nota o consejo (opcional)..."/>
     <div class="pform-btns">
       <button class="pform-cancel" onclick="closePlaceForm('${formId}')">Cancelar</button>
@@ -953,11 +1154,12 @@ function closePlaceForm(formId){const f=document.getElementById(formId);if(f){f.
 
 async function savePlace(diaNum,bodyId,formId){
   const nombre=(document.getElementById(`pn-${diaNum}`)||{value:''}).value.trim();
+  const maps=(document.getElementById(`pm-${diaNum}`)||{value:''}).value.trim();
   const nota=(document.getElementById(`pnote-${diaNum}`)||{value:''}).value.trim();
   if(!nombre){toast('⚠️ Escribe el nombre del lugar');return;}
   if(!selPlaceType){toast('⚠️ Selecciona el tipo');return;}
   const t=getType(selPlaceType);
-  const newRow={id:Date.now().toString(),dia:diaNum,tipo:'lugar',subtipo:selPlaceType,emoji:t.e,nombre,nota};
+  const newRow={id:Date.now().toString(),dia:diaNum,tipo:'lugar',subtipo:selPlaceType,emoji:t.e,nombre,nota,maps};
   const dayRef=itinRows.find(r=>+r.dia===diaNum);
   itinRows.push({...newRow,fecha:dayRef?dayRef.fecha:'',ciudad:dayRef?dayRef.ciudad:'',region:dayRef?dayRef.region:'',orden:999});
   closePlaceForm(formId);
@@ -968,7 +1170,7 @@ async function savePlace(diaNum,bodyId,formId){
     body.style.display='flex';
   }
   toast('✅ '+nombre+' agregado');
-  try{await api({action:'addLugar',id:newRow.id,dia:diaNum,tipo:newRow.subtipo,emoji:newRow.emoji,nombre,nota});}
+  try{await api({action:'addLugar',id:newRow.id,dia:diaNum,tipo:newRow.subtipo,emoji:newRow.emoji,nombre,nota,maps});}
   catch(e){toast('⚠️ Guardado local, error al sincronizar');}
 }
 function exportCSV(){
