@@ -141,15 +141,45 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .trip-code{font-family:'DM Mono',monospace;font-size:20px;font-weight:500;color:var(--cream)}.trip-name{font-size:9px;color:var(--muted2);margin-top:2px}.trip-dt{font-size:10px;font-family:'DM Mono',monospace;color:var(--text2);margin-top:2px}
 .trip-mid{padding:0 8px;text-align:center}.trip-line{display:flex;align-items:center;gap:3px}.trip-dash{width:32px;height:0.5px;background:var(--border2)}
 .trip-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:9px}.trip-tag{font-size:9px;padding:2px 7px;border-radius:20px;background:var(--surface2);color:var(--muted2);border:1px solid var(--border)}
-.day-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;overflow:hidden}
-.day-header{display:flex;align-items:center;gap:9px;padding:10px 13px;cursor:pointer;user-select:none}
-.day-num{width:28px;height:28px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-size:12px;font-weight:700;color:var(--muted2);flex-shrink:0}
-.day-num.today{background:rgba(192,57,43,.2);color:var(--sakura2);border:1px solid rgba(192,57,43,.3)}.day-num.past{opacity:.4}
-.day-info{flex:1}.day-city{font-size:13px;font-weight:600;color:var(--cream)}.day-region{font-size:10px;color:var(--muted2);margin-top:1px}
-.day-date{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);flex-shrink:0}
+
+/* NIVEL 1 — Ciudad */
+.city-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:10px;overflow:hidden}
+.city-header{display:flex;align-items:center;gap:11px;padding:13px 14px;cursor:pointer;user-select:none;background:linear-gradient(135deg,rgba(192,57,43,.06),transparent)}
+.city-emoji{font-size:22px;flex-shrink:0}
+.city-info{flex:1;min-width:0}
+.city-name{font-family:'Shippori Mincho',serif;font-size:16px;font-weight:700;color:var(--cream)}
+.city-meta{display:flex;gap:6px;align-items:center;margin-top:3px;flex-wrap:wrap}
+.city-nights{font-size:10px;background:rgba(212,168,67,.12);color:var(--gold2);border:1px solid rgba(212,168,67,.25);border-radius:20px;padding:2px 8px;font-family:'DM Mono',monospace}
+.city-dates{font-size:10px;color:var(--muted2);font-family:'DM Mono',monospace}
+.city-chevron{font-size:11px;color:var(--muted);flex-shrink:0;transition:transform .2s}
+.city-chevron.open{transform:rotate(180deg)}
+.city-body{border-top:1px solid var(--border);padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+
+/* HOTEL dentro de ciudad */
+.hotel-row{display:flex;align-items:center;gap:10px;background:rgba(212,168,67,.06);border:1px solid rgba(212,168,67,.2);border-radius:var(--r2);padding:10px 12px}
+.hotel-icon{font-size:18px;flex-shrink:0}
+.hotel-info{flex:1;min-width:0}
+.hotel-label{font-size:9px;text-transform:uppercase;letter-spacing:.7px;color:var(--gold);font-weight:600;margin-bottom:2px}
+.hotel-name{font-size:13px;font-weight:600;color:var(--cream)}
+.hotel-name.empty{color:var(--muted2);font-style:italic;font-weight:400}
+.hotel-edit-btn{font-size:10px;padding:4px 9px;border:1px solid rgba(212,168,67,.35);border-radius:8px;background:transparent;color:var(--gold2);cursor:pointer;font-family:'DM Sans',sans-serif;flex-shrink:0}
+
+/* NIVEL 2 — Día dentro de ciudad */
+.day-block{border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;background:var(--surface2)}
+.day-header{display:flex;align-items:center;gap:9px;padding:9px 12px;cursor:pointer;user-select:none}
+.day-num{width:26px;height:26px;border-radius:50%;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-size:11px;font-weight:700;color:var(--muted2);flex-shrink:0}
+.day-num.today{background:rgba(192,57,43,.25);color:var(--sakura2);border:1px solid rgba(192,57,43,.4)}
+.day-num.past{opacity:.35}
+.day-info{flex:1}
+.day-label{font-size:12px;font-weight:600;color:var(--text2)}
+.day-region{font-size:10px;color:var(--muted2);margin-top:1px}
+.day-date-badge{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);flex-shrink:0}
 .day-add-btn{font-size:9px;padding:3px 9px;border:1px solid var(--border2);border-radius:8px;background:transparent;color:var(--muted2);cursor:pointer;font-family:'DM Sans',sans-serif;flex-shrink:0}
-.day-body{border-top:1px solid var(--border);padding:9px 13px;display:flex;flex-direction:column;gap:7px}
-.place-item{display:flex;gap:8px;align-items:flex-start}
+.day-body{border-top:1px solid var(--border);padding:9px 12px;display:flex;flex-direction:column;gap:7px;background:var(--surface)}
+
+/* NIVEL 3 — Lugar */
+.place-item{display:flex;gap:8px;align-items:flex-start;padding:5px 0}
+.place-item:not(:last-child){border-bottom:1px solid var(--border)}
 .place-icon{width:26px;height:26px;border-radius:7px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:1px}
 .place-name{font-size:12px;font-weight:600;color:var(--cream)}.place-note{font-size:10px;color:var(--text2);margin-top:2px;line-height:1.5}
 .ptag{display:inline-block;font-size:9px;font-weight:500;padding:1px 6px;border-radius:20px;margin-top:3px}
@@ -159,7 +189,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .ptag-transporte{background:rgba(91,106,240,.1);color:var(--indigo2);border:1px solid rgba(91,106,240,.3)}
 .ptag-parque{background:rgba(74,222,128,.1);color:var(--mint);border:1px solid rgba(74,222,128,.3)}
 .ptag-otro{background:rgba(128,128,184,.1);color:var(--muted2);border:1px solid var(--border)}
-.add-place-form{border-top:1px solid var(--border);padding:10px 13px;background:var(--surface2);display:none;flex-direction:column;gap:7px}
+
+/* FORMULARIOS del itinerario */
+.add-place-form{border-top:1px solid var(--border);padding:10px 12px;background:var(--surface2);display:none;flex-direction:column;gap:7px}
 .add-place-form.open{display:flex}
 .type-grid{display:flex;gap:4px;flex-wrap:wrap}
 .type-btn{font-size:10px;padding:4px 9px;border:1.5px solid var(--border);border-radius:20px;background:var(--surface);color:var(--muted2);cursor:pointer;font-family:'DM Sans',sans-serif}
@@ -169,6 +201,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .pform-btns{display:flex;gap:6px}
 .pform-cancel{flex:1;padding:9px;background:transparent;color:var(--muted2);border:1px solid var(--border);border-radius:var(--r2);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer}
 .pform-save{flex:1;padding:9px;background:var(--indigo);color:white;border:none;border-radius:var(--r2);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer}
+
+/* Modal editar hotel */
+.hotel-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:300;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.hotel-modal-overlay.open{display:flex}
+.hotel-modal{background:var(--surface);border:1px solid var(--border);border-radius:20px 20px 0 0;padding:22px 18px 28px;width:100%;max-width:430px;animation:slideUp .2s ease}
+.hotel-modal h3{font-size:14px;font-weight:600;color:var(--cream);margin-bottom:12px}
 .lover{position:fixed;inset:0;background:rgba(10,10,15,.85);z-index:500;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px}
 .lover.show{display:flex}
 .spin{width:30px;height:30px;border:2px solid var(--border);border-top-color:var(--red);border-radius:50%;animation:spin .7s linear infinite}
@@ -201,7 +239,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="header">
     <div class="header-top">
       <h1><span>⛩️</span> Japón · Familia CA</h1>
-      <div class="hright"><span class="vbadge">v1.2</span><button id="syncBtn" class="syncbtn" onclick="syncAll()">⟳ Sync</button></div>
+      <div class="hright"><span class="vbadge">v1.4</span><button id="syncBtn" class="syncbtn" onclick="syncAll()">⟳ Sync</button></div>
     </div>
     <div class="hsub"><span class="dbadge">14–31 Oct 2026</span><span id="headerSub">Cargando...</span></div>
   </div>
@@ -367,6 +405,23 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     </div>
     <div id="daysList"></div>
     <div id="itinLoading" style="text-align:center;padding:20px;color:var(--muted2);font-size:12px">Cargando itinerario...</div>
+  </div>
+</div>
+
+<!-- HOTEL MODAL -->
+<div id="hotelModalOverlay" class="hotel-modal-overlay" onclick="if(event.target===this)closeHotelModal()">
+  <div class="hotel-modal">
+    <h3>🏨 Hotel / Alojamiento</h3>
+    <div class="flbl">Nombre del hotel</div>
+    <input id="hotelInput" type="text" class="ninput" placeholder="Ej: Shinjuku Granbell Hotel..." maxlength="100"/>
+    <div class="flbl">Link de Google Maps</div>
+    <input id="hotelMaps" type="url" class="ninput" placeholder="https://maps.google.com/..." style="font-size:11px"/>
+    <div class="flbl">Nota (check-in, dirección, etc.)</div>
+    <input id="hotelNota" type="text" class="ninput" placeholder="Check-in 15:00 · Check-out 11:00..." maxlength="120"/>
+    <div style="display:flex;gap:7px;margin-top:2px">
+      <button onclick="closeHotelModal()" style="flex:1;padding:11px;background:var(--surface2);color:var(--muted2);border:none;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer">Cancelar</button>
+      <button onclick="saveHotel()" style="flex:1;padding:11px;background:var(--gold);color:#1a0a00;border:none;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer">Guardar</button>
+    </div>
   </div>
 </div>
 
@@ -698,53 +753,223 @@ function buildTaskEl(t){
   return div;
 }
 function toggleTaskActions(id){const el=document.getElementById(id);if(!el)return;const open=el.style.display!=='none';document.querySelectorAll('.task-actions').forEach(a=>a.style.display='none');if(!open)el.style.display='flex';}
-// ── ITINERARIO ──────────────────────────────────────────────────────────────────
+// ── ITINERARIO (3 niveles: ciudad → hotel+días → lugares) ───────────────────────
+
+// Configuración fija de ciudades — define el agrupamiento y orden
+// hotel se guarda en localStorage por ciudad para edición desde la app
+const CIUDADES_DEF = [
+  {id:'vuelo-ida',  nombre:'Vuelo de ida',    emoji:'✈️',  fechaIni:'2026-10-14', fechaFin:'2026-10-14', noches:0, dias:[1]},
+  {id:'tokyo',      nombre:'Tokyo',            emoji:'🗼', fechaIni:'2026-10-15', fechaFin:'2026-10-19', noches:5, dias:[2,3,4,5,6,7]},
+  {id:'hakone',     nombre:'Hakone',           emoji:'🗻', fechaIni:'2026-10-21', fechaFin:'2026-10-22', noches:2, dias:[8,9]},
+  {id:'kyoto',      nombre:'Kyoto',            emoji:'⛩️', fechaIni:'2026-10-23', fechaFin:'2026-10-26', noches:4, dias:[10,11,12,13]},
+  {id:'nara',       nombre:'Nara',             emoji:'🦌', fechaIni:'2026-10-27', fechaFin:'2026-10-27', noches:0, dias:[14]},
+  {id:'osaka',      nombre:'Osaka',            emoji:'🏯', fechaIni:'2026-10-28', fechaFin:'2026-10-30', noches:3, dias:[15,16,17]},
+  {id:'vuelo-vuelta',nombre:'Vuelo de regreso',emoji:'✈️', fechaIni:'2026-10-31', fechaFin:'2026-10-31', noches:0, dias:[18]},
+];
+
+// hoteles guardados en localStorage (persiste sin necesitar Sheets)
+let hoteles = JSON.parse(localStorage.getItem('japon_hoteles')||'{}');
+let hotelEditCityId = null;
+
+function saveHotelesLocal(){localStorage.setItem('japon_hoteles',JSON.stringify(hoteles));}
+
+function openHotelModal(cityId){
+  hotelEditCityId = cityId;
+  const h = hoteles[cityId]||{nombre:'',maps:'',nota:''};
+  document.getElementById('hotelInput').value = h.nombre||'';
+  document.getElementById('hotelMaps').value  = h.maps||'';
+  document.getElementById('hotelNota').value  = h.nota||'';
+  document.getElementById('hotelModalOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('hotelInput').focus(),150);
+}
+function closeHotelModal(){
+  document.getElementById('hotelModalOverlay').classList.remove('open');
+  hotelEditCityId = null;
+}
+async function saveHotel(){
+  const nombre = document.getElementById('hotelInput').value.trim();
+  const maps   = document.getElementById('hotelMaps').value.trim();
+  const nota   = document.getElementById('hotelNota').value.trim();
+  if(!hotelEditCityId) return;
+  hoteles[hotelEditCityId] = {nombre, maps, nota};
+  saveHotelesLocal();
+  closeHotelModal();
+  renderDays();
+  toast('🏨 Hotel guardado');
+  try{ await api({action:'updateHotel', cityId:hotelEditCityId, nombre, maps, nota}); }
+  catch(e){ /* falla silenciosa — guardado en local */ }
+}
+
 function renderDays(){
-  const el=document.getElementById('daysList');const loading=document.getElementById('itinLoading');
-  if(!itinRows.length){loading.style.display='block';return;}loading.style.display='none';el.innerHTML='';
-  const diasMap={};
-  itinRows.forEach(row=>{const k=String(row.dia);if(!diasMap[k])diasMap[k]={dia:+row.dia,fecha:row.fecha,ciudad:row.ciudad,region:row.region,places:[]};if(row.nombre)diasMap[k].places.push(row);});
-  const dias=Object.values(diasMap).sort((a,b)=>a.dia-b.dia);const todayISO=todayMX();
-  dias.forEach(day=>{
-    const isPast=day.fecha<todayISO,isToday=day.fecha===todayISO;
-    const bodyId=`db-${day.dia}`,formId=`df-${day.dia}`;const numCls=isToday?'today':isPast?'past':'';
-    const card=document.createElement('div');card.className='day-card';
-    card.innerHTML=`<div class="day-header" onclick="toggleDay('${bodyId}')">
-      <div class="day-num ${numCls}">${day.dia}</div>
-      <div class="day-info"><div class="day-city">${day.ciudad}</div><div class="day-region">${day.region}</div></div>
-      <div class="day-date">${day.fecha.slice(5).replace('-','/')}</div>
-      <button class="day-add-btn" onclick="event.stopPropagation();openPlaceForm(${day.dia},'${formId}','${bodyId}')">+ Agregar</button>
-    </div>
-    <div id="${bodyId}" class="day-body" style="${isToday?'':'display:none'}">
-      ${day.places.sort((a,b)=>(+a.orden||0)-(+b.orden||0)).map(p=>buildPlaceHTML(p)).join('')}
-    </div>
-    <div id="${formId}" class="add-place-form"></div>`;
-    el.appendChild(card);
+  const el = document.getElementById('daysList');
+  const loading = document.getElementById('itinLoading');
+  if(!itinRows.length){ loading.style.display='block'; return; }
+  loading.style.display='none';
+  el.innerHTML='';
+
+  const todayISO = todayMX();
+
+  // Construir mapa de días desde itinRows
+  const diasMap = {};
+  itinRows.forEach(row => {
+    const k = String(row.dia);
+    if(!diasMap[k]) diasMap[k] = {dia:+row.dia, fecha:row.fecha, ciudad:row.ciudad, region:row.region, places:[]};
+    if(row.nombre) diasMap[k].places.push(row);
+  });
+
+  // Renderizar por ciudad
+  CIUDADES_DEF.forEach(ciudad => {
+    const cityDias = ciudad.dias.map(d => diasMap[String(d)]).filter(Boolean);
+    if(!cityDias.length) return;
+
+    const hotel = hoteles[ciudad.id]||{};
+    const cityId = ciudad.id;
+    const bodyId = `cb-${cityId}`;
+    const chevId = `ch-${cityId}`;
+
+    // Determinar si la ciudad está activa (algún día es hoy o el futuro más próximo)
+    const isActive = cityDias.some(d => d.fecha === todayISO);
+    const isPast   = cityDias.every(d => d.fecha < todayISO);
+
+    // Fechas de display
+    const fechaIniLabel = ciudad.fechaIni.slice(5).replace('-','/');
+    const fechaFinLabel = ciudad.noches > 0 ? ` – ${ciudad.fechaFin.slice(5).replace('-','/')}` : '';
+
+    const block = document.createElement('div');
+    block.className = 'city-block';
+
+    const nightsLabel = ciudad.noches > 0
+      ? `${ciudad.noches} noche${ciudad.noches>1?'s':''}`
+      : '';
+
+    block.innerHTML = `
+      <div class="city-header" onclick="toggleCity('${bodyId}','${chevId}')">
+        <div class="city-emoji" style="${isPast?'opacity:.4':''}">${ciudad.emoji}</div>
+        <div class="city-info">
+          <div class="city-name" style="${isPast?'opacity:.5':''}">${ciudad.nombre}</div>
+          <div class="city-meta">
+            ${nightsLabel?`<span class="city-nights">${nightsLabel}</span>`:''}
+            <span class="city-dates">${fechaIniLabel}${fechaFinLabel}</span>
+          </div>
+        </div>
+        <span id="${chevId}" class="city-chevron open">▼</span>
+      </div>
+      <div id="${bodyId}" class="city-body">
+        ${ciudad.noches > 0 ? `
+        <div class="hotel-row">
+          <div class="hotel-icon">🏨</div>
+          <div class="hotel-info">
+            <div class="hotel-label">Alojamiento</div>
+            <div class="hotel-name ${hotel.nombre?'':'empty'}">${hotel.nombre||'Sin confirmar — toca para agregar'}</div>
+            ${hotel.nota?`<div style="font-size:10px;color:var(--muted2);margin-top:2px">${hotel.nota}</div>`:''}
+            ${hotel.maps?`<a href="${hotel.maps}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--indigo2);margin-top:5px;text-decoration:none;background:rgba(91,106,240,.1);border:1px solid rgba(91,106,240,.25);border-radius:6px;padding:3px 8px;">📍 Ver en Maps</a>`:''}
+          </div>
+          <button class="hotel-edit-btn" onclick="event.stopPropagation();openHotelModal('${cityId}')">
+            ${hotel.nombre?'✏️':'+ Hotel'}
+          </button>
+        </div>` : ''}
+        <div id="days-inner-${cityId}"></div>
+      </div>`;
+    el.appendChild(block);
+
+    // Renderizar los días dentro de la ciudad
+    const innerEl = document.getElementById(`days-inner-${cityId}`);
+    cityDias.forEach(day => {
+      const isToday  = day.fecha === todayISO;
+      const dayPast  = day.fecha < todayISO;
+      const bodyDId  = `db-${day.dia}`;
+      const formDId  = `df-${day.dia}`;
+      const numCls   = isToday?'today':dayPast?'past':'';
+
+      const dayEl = document.createElement('div');
+      dayEl.className = 'day-block';
+      dayEl.innerHTML = `
+        <div class="day-header" onclick="toggleDay('${bodyDId}')">
+          <div class="day-num ${numCls}">${day.dia}</div>
+          <div class="day-info">
+            <div class="day-label">${isToday?'Hoy · ':''}${day.region||day.ciudad}</div>
+            <div class="day-date-badge">${day.fecha?day.fecha.slice(5).replace('-','/'):''}</div>
+          </div>
+          <button class="day-add-btn" onclick="event.stopPropagation();openPlaceForm(${day.dia},'${formDId}','${bodyDId}')">+ Agregar</button>
+        </div>
+        <div id="${bodyDId}" class="day-body">
+          ${day.places.sort((a,b)=>(+a.orden||0)-(+b.orden||0)).map(p=>buildPlaceHTML(p)).join('')}
+          ${!day.places.length?'<div style="font-size:11px;color:var(--muted2);padding:4px 0">Sin actividades — toca "+ Agregar"</div>':''}
+        </div>
+        <div id="${formDId}" class="add-place-form"></div>`;
+      innerEl.appendChild(dayEl);
+    });
   });
 }
-function toggleDay(id){const el=document.getElementById(id);if(!el)return;el.style.display=el.style.display==='none'?'flex':'none';}
-function buildPlaceHTML(p){const t=getType(p.subtipo||p.tipo);return`<div class="place-item"><div class="place-icon">${p.emoji||t.e}</div><div style="flex:1;min-width:0"><div class="place-name">${p.nombre}</div>${p.nota?`<div class="place-note">${p.nota}</div>`:''}<span class="ptag ${t.cls}">${t.n}</span></div></div>`;}
+
+function toggleCity(bodyId, chevId){
+  const body = document.getElementById(bodyId);
+  const chev = document.getElementById(chevId);
+  if(!body) return;
+  const open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'flex';
+  if(chev) chev.className = 'city-chevron' + (open?'':' open');
+}
+
+function toggleDay(id){
+  const el=document.getElementById(id);if(!el)return;
+  el.style.display=el.style.display==='none'?'flex':'none';
+}
+
+function buildPlaceHTML(p){
+  const t=getType(p.subtipo||p.tipo);
+  return`<div class="place-item">
+    <div class="place-icon">${p.emoji||t.e}</div>
+    <div style="flex:1;min-width:0">
+      <div class="place-name">${p.nombre}</div>
+      ${p.nota?`<div class="place-note">${p.nota}</div>`:''}
+      <span class="ptag ${t.cls}">${t.n}</span>
+    </div>
+  </div>`;
+}
+
 function openPlaceForm(diaNum,formId,bodyId){
   document.querySelectorAll('.add-place-form').forEach(f=>{f.classList.remove('open');f.innerHTML='';});
-  const body=document.getElementById(bodyId);if(body)body.style.display='flex';selPlaceType=null;activeFormDay=diaNum;
+  const body=document.getElementById(bodyId);if(body)body.style.display='flex';
+  selPlaceType=null;activeFormDay=diaNum;
   const form=document.getElementById(formId);
-  form.innerHTML=`<div class="flbl" style="color:var(--muted2)">Tipo de lugar</div>
+  form.innerHTML=`
+    <div class="flbl" style="color:var(--muted2)">Tipo de lugar</div>
     <div class="type-grid" id="tg-${diaNum}">${PLACE_TYPES.map(t=>`<div class="type-btn" id="tb-${diaNum}-${t.id}" onclick="setPlaceType(${diaNum},'${t.id}')">${t.e} ${t.n}</div>`).join('')}</div>
     <input class="plinein" id="pn-${diaNum}" placeholder="Nombre del lugar..."/>
     <input class="plinein" id="pnote-${diaNum}" placeholder="Nota o consejo (opcional)..."/>
-    <div class="pform-btns"><button class="pform-cancel" onclick="closePlaceForm('${formId}')">Cancelar</button><button class="pform-save" onclick="savePlace(${diaNum},'${bodyId}','${formId}')">Guardar</button></div>`;
-  form.classList.add('open');setTimeout(()=>form.scrollIntoView({behavior:'smooth',block:'nearest'}),50);
+    <div class="pform-btns">
+      <button class="pform-cancel" onclick="closePlaceForm('${formId}')">Cancelar</button>
+      <button class="pform-save" onclick="savePlace(${diaNum},'${bodyId}','${formId}')">Guardar</button>
+    </div>`;
+  form.classList.add('open');
+  setTimeout(()=>form.scrollIntoView({behavior:'smooth',block:'nearest'}),50);
 }
-function setPlaceType(diaNum,typeId){selPlaceType=typeId;PLACE_TYPES.forEach(t=>{const b=document.getElementById(`tb-${diaNum}-${t.id}`);if(b)b.className='type-btn'+(t.id===typeId?' sel':'');});}
+function setPlaceType(diaNum,typeId){
+  selPlaceType=typeId;
+  PLACE_TYPES.forEach(t=>{const b=document.getElementById(`tb-${diaNum}-${t.id}`);if(b)b.className='type-btn'+(t.id===typeId?' sel':'');});
+}
 function closePlaceForm(formId){const f=document.getElementById(formId);if(f){f.classList.remove('open');f.innerHTML='';}selPlaceType=null;activeFormDay=null;}
+
 async function savePlace(diaNum,bodyId,formId){
-  const nombre=(document.getElementById(`pn-${diaNum}`)||{value:''}).value.trim();const nota=(document.getElementById(`pnote-${diaNum}`)||{value:''}).value.trim();
-  if(!nombre){toast('⚠️ Escribe el nombre del lugar');return;}if(!selPlaceType){toast('⚠️ Selecciona el tipo');return;}
-  const t=getType(selPlaceType);const newRow={id:Date.now().toString(),dia:diaNum,tipo:'lugar',subtipo:selPlaceType,emoji:t.e,nombre,nota};
-  const dayRef=itinRows.find(r=>+r.dia===diaNum);itinRows.push({...newRow,fecha:dayRef?dayRef.fecha:'',ciudad:dayRef?dayRef.ciudad:'',region:dayRef?dayRef.region:'',orden:999});
-  closePlaceForm(formId);const body=document.getElementById(bodyId);
-  if(body){const dayPlaces=itinRows.filter(r=>+r.dia===diaNum&&r.nombre);body.innerHTML=dayPlaces.sort((a,b)=>(+a.orden||0)-(+b.orden||0)).map(p=>buildPlaceHTML(p)).join('');body.style.display='flex';}
-  toast('✅ '+nombre+' agregado');try{await api({action:'addLugar',id:newRow.id,dia:diaNum,tipo:newRow.subtipo,emoji:newRow.emoji,nombre,nota});}catch(e){toast('⚠️ Error al sincronizar');}
+  const nombre=(document.getElementById(`pn-${diaNum}`)||{value:''}).value.trim();
+  const nota=(document.getElementById(`pnote-${diaNum}`)||{value:''}).value.trim();
+  if(!nombre){toast('⚠️ Escribe el nombre del lugar');return;}
+  if(!selPlaceType){toast('⚠️ Selecciona el tipo');return;}
+  const t=getType(selPlaceType);
+  const newRow={id:Date.now().toString(),dia:diaNum,tipo:'lugar',subtipo:selPlaceType,emoji:t.e,nombre,nota};
+  const dayRef=itinRows.find(r=>+r.dia===diaNum);
+  itinRows.push({...newRow,fecha:dayRef?dayRef.fecha:'',ciudad:dayRef?dayRef.ciudad:'',region:dayRef?dayRef.region:'',orden:999});
+  closePlaceForm(formId);
+  const body=document.getElementById(bodyId);
+  if(body){
+    const dayPlaces=itinRows.filter(r=>+r.dia===diaNum&&r.nombre);
+    body.innerHTML=dayPlaces.sort((a,b)=>(+a.orden||0)-(+b.orden||0)).map(p=>buildPlaceHTML(p)).join('');
+    body.style.display='flex';
+  }
+  toast('✅ '+nombre+' agregado');
+  try{await api({action:'addLugar',id:newRow.id,dia:diaNum,tipo:newRow.subtipo,emoji:newRow.emoji,nombre,nota});}
+  catch(e){toast('⚠️ Guardado local, error al sincronizar');}
 }
 function exportCSV(){
   const rows=[['Fecha','Categoría','Monto MXN','Monto Original','Moneda','Quien','Método','Nota']];
