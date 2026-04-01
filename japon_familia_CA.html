@@ -239,7 +239,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="header">
     <div class="header-top">
       <h1><span>⛩️</span> Japón · Familia CA</h1>
-      <div class="hright"><span class="vbadge">v1.9</span><button id="syncBtn" class="syncbtn" onclick="syncAll()">⟳ Sync</button></div>
+      <div class="hright"><span class="vbadge">v2.0</span><button id="syncBtn" class="syncbtn" onclick="syncAll()">⟳ Sync</button></div>
     </div>
     <div class="hsub"><span class="dbadge">14–31 Oct 2026</span><span id="headerSub">Cargando...</span></div>
   </div>
@@ -619,34 +619,61 @@ async function syncAll(){
     tareas=(tR&&tR.tareas&&tR.tareas.length)?tR.tareas:TAREAS_BASE.map(t=>({...t}));
     if(iR&&iR.filas)itinRows=iR.filas;
     if(iR&&iR.hoteles)hoteles=iR.hoteles;
-    if(iR&&iR.ciudades&&iR.ciudades.length) buildCiudadesFromSheets(iR.ciudades, iR.filas||[]);
+    // Siempre reconstruir ciudades — usa filas ciudad si existen, fallback por nombre si no
+    buildCiudadesFromSheets(iR?.ciudades||[], iR?.filas||[]);
     renderAll();setSyncing(false,true);
   }catch(e){setSyncing(false);toast('❌ Error de conexión');if(!tareas.length)tareas=TAREAS_BASE.map(t=>({...t}));renderAll();}
 }
 
-// Construye el array `ciudades` desde las filas de Sheets,
-// calculando qué días pertenecen a cada ciudad por fecha
+// Construye el array `ciudades` desde las filas de Sheets.
+// Si no hay filas tipo='ciudad', agrupa los días por ciudad/nombre automáticamente.
 function buildCiudadesFromSheets(ciudadesData, filas){
-  // Obtener todos los días únicos ordenados
   const diasMap = {};
   filas.forEach(r => {
-    if(r.tipo === 'dia' || (!r.tipo && r.fecha)) {
+    if(r.dia && r.fecha){
       const k = String(r.dia);
-      if(!diasMap[k]) diasMap[k] = {dia:+r.dia, fecha:r.fecha};
+      if(!diasMap[k]) diasMap[k] = {dia:+r.dia, fecha:r.fecha, ciudad:r.ciudad||''};
     }
   });
   const todosLosDias = Object.values(diasMap).sort((a,b) => a.dia - b.dia);
 
-  // Ordenar ciudades por fechaIni
-  const sorted = [...ciudadesData].sort((a,b) => (a.fechaIni||'') < (b.fechaIni||'') ? -1 : 1);
-
-  ciudades = sorted.map((c, idx) => {
-    const nextFechaIni = sorted[idx+1]?.fechaIni || '9999';
-    const misDias = todosLosDias
-      .filter(d => d.fecha >= c.fechaIni && d.fecha < nextFechaIni)
-      .map(d => d.dia);
-    return {...c, dias: misDias};
-  });
+  if(ciudadesData && ciudadesData.length){
+    // Caso normal: hay filas ciudad en Sheets
+    const sorted = [...ciudadesData].sort((a,b) => (a.fechaIni||'') < (b.fechaIni||'') ? -1 : 1);
+    ciudades = sorted.map((c, idx) => {
+      const nextFechaIni = sorted[idx+1]?.fechaIni || '9999';
+      const misDias = todosLosDias
+        .filter(d => d.fecha >= c.fechaIni && d.fecha < nextFechaIni)
+        .map(d => d.dia);
+      return {...c, dias: misDias};
+    });
+  } else {
+    // Fallback: agrupar días por nombre de ciudad desde las filas dia
+    const cityGroups = {};
+    const cityOrder = [];
+    todosLosDias.forEach(d => {
+      const nombre = d.ciudad || 'Sin ciudad';
+      if(!cityGroups[nombre]){
+        cityGroups[nombre] = {dias:[], fechaIni:d.fecha, fechaFin:d.fecha};
+        cityOrder.push(nombre);
+      }
+      cityGroups[nombre].dias.push(d.dia);
+      cityGroups[nombre].fechaFin = d.fecha;
+    });
+    ciudades = cityOrder.map(nombre => {
+      const g = cityGroups[nombre];
+      const noches = g.dias.length > 1 ? g.dias.length - 1 : 0;
+      return {
+        cityId: nombre.toLowerCase().replace(/[^a-z0-9]/g,'-'),
+        nombre,
+        emoji: '📍',
+        noches,
+        fechaIni: g.fechaIni,
+        fechaFin: g.fechaFin,
+        dias: g.dias,
+      };
+    });
+  }
 }
 function setSyncing(on,ok){
   const b=document.getElementById('syncBtn'),ov=document.getElementById('loadingOverlay');
@@ -931,6 +958,11 @@ function renderDays(){
 
   // Ciudades dinámicas desde Sheets
   const listaCiudades = ciudades.length ? ciudades : [];
+  if(!listaCiudades.length){
+    loading.style.display='block';
+    loading.textContent='Sin itinerario cargado — corre initItinerario() en el GAS';
+    return;
+  }
 
   listaCiudades.forEach(ciudad => {
     const cityDias = ciudad.dias.map(d => diasMap[String(d)]).filter(Boolean);
