@@ -239,7 +239,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="header">
     <div class="header-top">
       <h1><span>⛩️</span> Japón · Familia CA</h1>
-      <div class="hright"><span class="vbadge">v1.6</span><button id="syncBtn" class="syncbtn" onclick="syncAll()">⟳ Sync</button></div>
+      <div class="hright"><span class="vbadge">v1.9</span><button id="syncBtn" class="syncbtn" onclick="syncAll()">⟳ Sync</button></div>
     </div>
     <div class="hsub"><span class="dbadge">14–31 Oct 2026</span><span id="headerSub">Cargando...</span></div>
   </div>
@@ -400,11 +400,52 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <div class="trip-block"><div class="trip-code">NRT</div><div class="trip-name">Tokyo Narita</div><div class="trip-dt">15 Oct · 11:40</div></div>
       </div>
       <div class="trip-tags">
-        <span class="trip-tag">16H / 16K</span><span class="trip-tag">2 maletas c/u</span><span class="trip-tag">16 noches</span><span class="trip-tag">NH180 · 31 Oct · 16:50</span>
+        <span class="trip-tag">16H / 16K</span><span class="trip-tag">2 maletas c/u</span><span class="trip-tag">19 días</span><span class="trip-tag">NH180 · 1 Nov · 16:50</span>
       </div>
     </div>
     <div id="daysList"></div>
     <div id="itinLoading" style="text-align:center;padding:20px;color:var(--muted2);font-size:12px">Cargando itinerario...</div>
+  </div>
+</div>
+
+<!-- EDITAR CIUDAD MODAL -->
+<div id="cityEditOverlay" class="hotel-modal-overlay" onclick="if(event.target===this)closeCityEdit()">
+  <div class="hotel-modal">
+    <h3 id="cityEditTitle">✏️ Editar ciudad</h3>
+    <div class="flbl">Nombre</div>
+    <input id="cityEditNombre" type="text" class="ninput" placeholder="Ej: Kyoto..." maxlength="60"/>
+    <div style="display:flex;gap:8px">
+      <div style="flex:1">
+        <div class="flbl">Fecha inicio</div>
+        <input id="cityEditIni" type="date" class="ninput" style="color:var(--text);background:var(--surface2)"/>
+      </div>
+      <div style="flex:1">
+        <div class="flbl">Fecha fin</div>
+        <input id="cityEditFin" type="date" class="ninput" style="color:var(--text);background:var(--surface2)"/>
+      </div>
+    </div>
+    <div class="flbl">Noches</div>
+    <input id="cityEditNoches" type="number" min="0" max="30" class="ninput" placeholder="0"/>
+    <div class="flbl">Días de esta ciudad</div>
+    <div id="cityDaysList" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r2);padding:8px;margin-bottom:10px;max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:4px"></div>
+    <div style="display:flex;gap:7px">
+      <button onclick="closeCityEdit()" style="flex:1;padding:11px;background:var(--surface2);color:var(--muted2);border:none;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer">Cancelar</button>
+      <button onclick="saveCityEdit()" style="flex:1;padding:11px;background:var(--indigo);color:white;border:none;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- AGREGAR DÍA MODAL -->
+<div id="addDayOverlay" class="hotel-modal-overlay" onclick="if(event.target===this)closeAddDay()">
+  <div class="hotel-modal">
+    <h3 id="addDayTitle">+ Nuevo día</h3>
+    <div class="flbl">Fecha del día</div>
+    <input id="addDayFecha" type="date" class="ninput" style="color:var(--text);background:var(--surface2)"/>
+    <div style="font-size:10px;color:var(--muted2);margin-bottom:10px">La etiqueta del día se genera automáticamente. Puedes editarla después tocando ✏️ en el día.</div>
+    <div style="display:flex;gap:7px">
+      <button onclick="closeAddDay()" style="flex:1;padding:11px;background:var(--surface2);color:var(--muted2);border:none;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer">Cancelar</button>
+      <button onclick="saveAddDay()" style="flex:1;padding:11px;background:var(--red);color:var(--cream);border:none;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer">Agregar día</button>
+    </div>
   </div>
 </div>
 
@@ -577,9 +618,35 @@ async function syncAll(){
     if(gR.gastos)gastos=gR.gastos.map(g=>({...g,amtMXN:+g.amtMXN,monto_orig:+(g.monto_orig||g.amtMXN)}));
     tareas=(tR&&tR.tareas&&tR.tareas.length)?tR.tareas:TAREAS_BASE.map(t=>({...t}));
     if(iR&&iR.filas)itinRows=iR.filas;
-    if(iR&&iR.hoteles)hoteles=iR.hoteles; // ← hoteles desde Sheets, compartido entre dispositivos
+    if(iR&&iR.hoteles)hoteles=iR.hoteles;
+    if(iR&&iR.ciudades&&iR.ciudades.length) buildCiudadesFromSheets(iR.ciudades, iR.filas||[]);
     renderAll();setSyncing(false,true);
   }catch(e){setSyncing(false);toast('❌ Error de conexión');if(!tareas.length)tareas=TAREAS_BASE.map(t=>({...t}));renderAll();}
+}
+
+// Construye el array `ciudades` desde las filas de Sheets,
+// calculando qué días pertenecen a cada ciudad por fecha
+function buildCiudadesFromSheets(ciudadesData, filas){
+  // Obtener todos los días únicos ordenados
+  const diasMap = {};
+  filas.forEach(r => {
+    if(r.tipo === 'dia' || (!r.tipo && r.fecha)) {
+      const k = String(r.dia);
+      if(!diasMap[k]) diasMap[k] = {dia:+r.dia, fecha:r.fecha};
+    }
+  });
+  const todosLosDias = Object.values(diasMap).sort((a,b) => a.dia - b.dia);
+
+  // Ordenar ciudades por fechaIni
+  const sorted = [...ciudadesData].sort((a,b) => (a.fechaIni||'') < (b.fechaIni||'') ? -1 : 1);
+
+  ciudades = sorted.map((c, idx) => {
+    const nextFechaIni = sorted[idx+1]?.fechaIni || '9999';
+    const misDias = todosLosDias
+      .filter(d => d.fecha >= c.fechaIni && d.fecha < nextFechaIni)
+      .map(d => d.dia);
+    return {...c, dias: misDias};
+  });
 }
 function setSyncing(on,ok){
   const b=document.getElementById('syncBtn'),ov=document.getElementById('loadingOverlay');
@@ -807,15 +874,8 @@ function toggleTaskActions(id){const el=document.getElementById(id);if(!el)retur
 
 // Configuración fija de ciudades — define el agrupamiento y orden
 // hotel se guarda en localStorage por ciudad para edición desde la app
-const CIUDADES_DEF = [
-  {id:'vuelo-ida',  nombre:'Vuelo de ida',    emoji:'✈️',  fechaIni:'2026-10-14', fechaFin:'2026-10-14', noches:0, dias:[1]},
-  {id:'tokyo',      nombre:'Tokyo',            emoji:'🗼', fechaIni:'2026-10-15', fechaFin:'2026-10-19', noches:5, dias:[2,3,4,5,6,7]},
-  {id:'hakone',     nombre:'Hakone',           emoji:'🗻', fechaIni:'2026-10-21', fechaFin:'2026-10-22', noches:2, dias:[8,9]},
-  {id:'kyoto',      nombre:'Kyoto',            emoji:'⛩️', fechaIni:'2026-10-23', fechaFin:'2026-10-26', noches:4, dias:[10,11,12,13]},
-  {id:'nara',       nombre:'Nara',             emoji:'🦌', fechaIni:'2026-10-27', fechaFin:'2026-10-27', noches:0, dias:[14]},
-  {id:'osaka',      nombre:'Osaka',            emoji:'🏯', fechaIni:'2026-10-28', fechaFin:'2026-10-30', noches:3, dias:[15,16,17]},
-  {id:'vuelo-vuelta',nombre:'Vuelo de regreso',emoji:'✈️', fechaIni:'2026-10-31', fechaFin:'2026-10-31', noches:0, dias:[18]},
-];
+// ciudades cargadas desde Sheets — se reconstruyen en syncAll
+let ciudades = [];
 
 // hoteles en memoria — se cargan desde Sheets en syncAll (compartido entre dispositivos)
 let hoteles = {};
@@ -859,10 +919,9 @@ function renderDays(){
   if(!itinRows.length){ loading.style.display='block'; return; }
   loading.style.display='none';
   el.innerHTML='';
-
   const todayISO = todayMX();
 
-  // Construir mapa de días desde itinRows
+  // Mapa de días
   const diasMap = {};
   itinRows.forEach(row => {
     const k = String(row.dia);
@@ -870,34 +929,25 @@ function renderDays(){
     if(row.nombre) diasMap[k].places.push(row);
   });
 
-  // Renderizar por ciudad
-  CIUDADES_DEF.forEach(ciudad => {
-    const cityDias = ciudad.dias.map(d => diasMap[String(d)]).filter(Boolean);
-    if(!cityDias.length) return;
+  // Ciudades dinámicas desde Sheets
+  const listaCiudades = ciudades.length ? ciudades : [];
 
-    const hotel = hoteles[ciudad.id]||{};
-    const cityId = ciudad.id;
+  listaCiudades.forEach(ciudad => {
+    const cityDias = ciudad.dias.map(d => diasMap[String(d)]).filter(Boolean);
+    const hotel = hoteles[ciudad.cityId]||{};
+    const cityId = ciudad.cityId;
     const bodyId = `cb-${cityId}`;
     const chevId = `ch-${cityId}`;
-
-    // Determinar si la ciudad está activa (algún día es hoy o el futuro más próximo)
-    const isActive = cityDias.some(d => d.fecha === todayISO);
-    const isPast   = cityDias.every(d => d.fecha < todayISO);
-
-    // Fechas de display
-    const fechaIniLabel = ciudad.fechaIni.slice(5).replace('-','/');
-    const fechaFinLabel = ciudad.noches > 0 ? ` – ${ciudad.fechaFin.slice(5).replace('-','/')}` : '';
+    const isPast = cityDias.length > 0 && cityDias.every(d => d.fecha < todayISO);
+    const fechaIniLabel = ciudad.fechaIni ? ciudad.fechaIni.slice(5).replace('-','/') : '';
+    const fechaFinLabel = ciudad.noches > 0 && ciudad.fechaFin ? ` – ${ciudad.fechaFin.slice(5).replace('-','/')}` : '';
+    const nightsLabel = ciudad.noches > 0 ? `${ciudad.noches} noche${ciudad.noches>1?'s':''}` : '';
 
     const block = document.createElement('div');
     block.className = 'city-block';
-
-    const nightsLabel = ciudad.noches > 0
-      ? `${ciudad.noches} noche${ciudad.noches>1?'s':''}`
-      : '';
-
     block.innerHTML = `
       <div class="city-header" onclick="toggleCity('${bodyId}','${chevId}')">
-        <div class="city-emoji" style="${isPast?'opacity:.4':''}">${ciudad.emoji}</div>
+        <div class="city-emoji" style="${isPast?'opacity:.4':''}">${ciudad.emoji||'📍'}</div>
         <div class="city-info">
           <div class="city-name" style="${isPast?'opacity:.5':''}">${ciudad.nombre}</div>
           <div class="city-meta">
@@ -905,7 +955,10 @@ function renderDays(){
             <span class="city-dates">${fechaIniLabel}${fechaFinLabel}</span>
           </div>
         </div>
-        <span id="${chevId}" class="city-chevron open">▼</span>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+          <button class="day-add-btn" onclick="event.stopPropagation();openCityEdit('${cityId}')" style="font-size:10px;padding:3px 8px;">✏️ Ciudad</button>
+          <span id="${chevId}" class="city-chevron open">▼</span>
+        </div>
       </div>
       <div id="${bodyId}" class="city-body">
         ${ciudad.noches > 0 ? `
@@ -922,18 +975,17 @@ function renderDays(){
           </button>
         </div>` : ''}
         <div id="days-inner-${cityId}"></div>
+        <button onclick="openAddDayModal('${cityId}')" style="width:100%;margin-top:6px;padding:8px;background:transparent;border:1px dashed var(--border2);border-radius:var(--r2);color:var(--muted2);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;">+ Agregar día a ${ciudad.nombre}</button>
       </div>`;
     el.appendChild(block);
 
-    // Renderizar los días dentro de la ciudad
     const innerEl = document.getElementById(`days-inner-${cityId}`);
     cityDias.forEach(day => {
-      const isToday  = day.fecha === todayISO;
-      const dayPast  = day.fecha < todayISO;
-      const bodyDId  = `db-${day.dia}`;
-      const formDId  = `df-${day.dia}`;
-      const numCls   = isToday?'today':dayPast?'past':'';
-
+      const isToday = day.fecha === todayISO;
+      const dayPast = day.fecha < todayISO;
+      const bodyDId = `db-${day.dia}`;
+      const formDId = `df-${day.dia}`;
+      const numCls  = isToday?'today':dayPast?'past':'';
       const dayEl = document.createElement('div');
       dayEl.className = 'day-block';
       dayEl.innerHTML = `
@@ -1120,12 +1172,120 @@ function confirmDeleteDia(){
 async function doDeleteDia(dia){
   const diaNum = +dia;
   const prev = [...itinRows];
-  // Eliminar solo los lugares (tipo='lugar'), conservar la fila tipo='dia'
   itinRows = itinRows.filter(r => !(+r.dia === diaNum && r.tipo === 'lugar'));
+  // También eliminar la fila 'dia' del diasMap
+  itinRows = itinRows.filter(r => !(+r.dia === diaNum && r.tipo === 'dia'));
+  // Reasignar días en ciudades
+  ciudades = ciudades.map(c => ({...c, dias: c.dias.filter(d => d !== diaNum)}));
   renderDays();
-  toast('🗑️ Lugares del día eliminados');
+  toast('🗑️ Día eliminado');
   try{ await api({action:'deleteDia', dia:diaNum}); }
   catch(e){ itinRows = prev; renderDays(); toast('❌ Error'); }
+}
+
+// ── EDITAR CIUDAD ──────────────────────────────────────────────────────────────
+let editCityId = null;
+
+function openCityEdit(cityId){
+  editCityId = cityId;
+  const c = ciudades.find(x => x.cityId === cityId);
+  if(!c) return;
+  document.getElementById('cityEditTitle').textContent = `✏️ ${c.nombre}`;
+  document.getElementById('cityEditNombre').value  = c.nombre  || '';
+  document.getElementById('cityEditIni').value     = c.fechaIni || '';
+  document.getElementById('cityEditFin').value     = c.fechaFin || '';
+  document.getElementById('cityEditNoches').value  = c.noches != null ? c.noches : '';
+
+  // Renderizar lista de días con botón eliminar
+  const diasMap = {};
+  itinRows.forEach(r => { const k=String(r.dia); if(!diasMap[k])diasMap[k]={dia:+r.dia,fecha:r.fecha,region:r.region}; });
+  const cityDias = c.dias.map(d => diasMap[String(d)]).filter(Boolean).sort((a,b)=>a.dia-b.dia);
+  const dl = document.getElementById('cityDaysList');
+  if(!cityDias.length){
+    dl.innerHTML='<div style="font-size:11px;color:var(--muted2);padding:4px">Sin días aún</div>';
+  } else {
+    dl.innerHTML = cityDias.map(d => `
+      <div style="display:flex;align-items:center;gap:8px;padding:5px 4px;border-bottom:1px solid var(--border)">
+        <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted2);flex-shrink:0;min-width:28px">D${d.dia}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:11px;font-weight:600;color:var(--text2)">${d.fecha?d.fecha.slice(5).replace('-','/'):''}</div>
+          <div style="font-size:10px;color:var(--muted2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${d.region||'—'}</div>
+        </div>
+        <button onclick="confirmDeleteDiaFromCity(${d.dia},'${(d.region||'Día '+d.dia).replace(/'/g,"\\'")}')" style="padding:3px 8px;background:rgba(192,57,43,.12);color:var(--red2);border:1px solid rgba(192,57,43,.25);border-radius:6px;font-size:10px;cursor:pointer;font-family:'DM Sans',sans-serif;flex-shrink:0">🗑️</button>
+      </div>`).join('');
+  }
+
+  document.getElementById('cityEditOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('cityEditNombre').focus(), 150);
+}
+function closeCityEdit(){
+  document.getElementById('cityEditOverlay').classList.remove('open');
+  editCityId = null;
+}
+async function saveCityEdit(){
+  const nombre  = document.getElementById('cityEditNombre').value.trim();
+  const fechaIni = document.getElementById('cityEditIni').value;
+  const fechaFin = document.getElementById('cityEditFin').value;
+  const noches  = parseInt(document.getElementById('cityEditNoches').value)||0;
+  if(!nombre){ toast('⚠️ Escribe el nombre'); return; }
+  const idx = ciudades.findIndex(c => c.cityId === editCityId);
+  if(idx === -1) return;
+  const prev = {...ciudades[idx]};
+  ciudades[idx] = {...ciudades[idx], nombre, fechaIni, fechaFin, noches};
+  const savedId = editCityId;
+  closeCityEdit();
+  renderDays();
+  toast('✅ Ciudad actualizada');
+  try{ await api({action:'updateCiudad', cityId:savedId, nombre, fechaIni, fechaFin, noches}); }
+  catch(e){ ciudades[idx]=prev; renderDays(); toast('❌ Error al sincronizar'); }
+}
+
+// Eliminar día desde el modal de ciudad (con confirmación)
+function confirmDeleteDiaFromCity(diaNum, label){
+  closeCityEdit();
+  pendingDeleteId = String(diaNum);
+  deleteIsTask = false;
+  window._deleteIsLugar = false;
+  window._deleteIsDia = true;
+  document.getElementById('delDesc').textContent = `Día ${diaNum} — ${label}. Se eliminarán todos sus lugares. No se puede deshacer.`;
+  document.getElementById('delOverlay').classList.add('open');
+}
+
+// ── AGREGAR DÍA ────────────────────────────────────────────────────────────────
+let addDayCityId = null;
+
+function openAddDayModal(cityId){
+  addDayCityId = cityId;
+  const c = ciudades.find(x => x.cityId === cityId);
+  document.getElementById('addDayTitle').textContent = `+ Día en ${c?.nombre||cityId}`;
+  document.getElementById('addDayFecha').value  = '';
+  document.getElementById('addDayRegion').value = '';
+  document.getElementById('addDayOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('addDayFecha').focus(), 150);
+}
+function closeAddDay(){
+  document.getElementById('addDayOverlay').classList.remove('open');
+  addDayCityId = null;
+}
+async function saveAddDay(){
+  const fecha = document.getElementById('addDayFecha').value;
+  if(!fecha){ toast('⚠️ Selecciona la fecha'); return; }
+  const c = ciudades.find(x => x.cityId === addDayCityId);
+  const cityNombre = c?.nombre || '';
+  // Número de día = max existente + 1
+  const maxDia = itinRows.reduce((m,r) => Math.max(m, +r.dia||0), 0);
+  const newDia = maxDia + 1;
+  // Etiqueta automática
+  const region = `${cityNombre} · Día ${newDia}`;
+  const newRow = {id:'d'+newDia, dia:newDia, tipo:'dia', fecha, ciudad:cityNombre, region, places:[]};
+  itinRows.push(newRow);
+  const idx = ciudades.findIndex(x => x.cityId === addDayCityId);
+  if(idx !== -1) ciudades[idx] = {...ciudades[idx], dias:[...ciudades[idx].dias, newDia]};
+  closeAddDay();
+  renderDays();
+  toast(`✅ Día ${newDia} agregado · ${fecha.slice(5).replace('-','/')}`);
+  try{ await api({action:'addDia', id:newRow.id, dia:newDia, fecha, ciudad:cityNombre, region}); }
+  catch(e){ toast('⚠️ Error al sincronizar'); }
 }
 
 function openPlaceForm(diaNum,formId,bodyId){
